@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Libitina Virtual Books</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+              integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+        <link rel="stylesheet" href="/css/index.css">
+        <link th:href="@{/imagenes/logo/L_cuadrado.png}" rel="icon" type="image/png">
+
+
+        <style>
+            @media (max-width: 992px) {
+                .carrusel-1 {
+                    content: url('imagenes/index/Carrusel2P.png');
+                }
+
+                .carrusel-2 {
+                    content: url('imagenes/index/Carrusel1P.png');
+                }
+
+                .carrusel-3 {
+                    content: url('imagenes/index/Carrusel3P.png');
+                }
+            }
+
+            .estrella-amarilla {
+                color: #ffdc80;
+            }
+
+            .book-card img {
+                width: 100%;
+                height: auto;
+                border-radius: 10px;
+                margin-bottom: 10px;
+            }
+
+            .book-card img {
+                width: 100%;
+                height: 370px;
+                object-fit: cover;
+                border-radius: 10px;
+                margin-bottom: 10px;
+            }
+
+            .book-card {
+                background-color: #fff;
+                border-radius: 10px;
+                padding: 15px;
+                text-align: center;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                margin-bottom: 20px;
+            }
+
+            .book-card img {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .book-card:hover img {
+                transform: translateY(-10px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            }
+        </style>
+
+    </head>
+
+    <body>
+
+        <div id="spinner"
+             class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-secondary" style="width: 3rem; height: 3rem;" role="status">
+            </div>
+        </div>
+
+        <!-- navbar -->
+        <nav class="navbar navbar-expand-lg bg-light text-dark" data-bs-theme="light">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" th:href="@{/index}">
+                    <img th:src="@{/imagenes/logo/L_largoN.png}" alt="" height="40px">
+                </a>
+
+                <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#menucito">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="menucito">
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link text-dark" th:href="@{/Libreria}">Libros</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" th:href="@{/nosotros}">Nosotros</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" th:href="@{/SubirLibro}">Sube tu libro</a></li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <!-- Opciones visibles solo para usuarios autenticados -->
+                        <li class="nav-item" sec:authorize="isAuthenticated()">
+                            <a class="nav-link text-dark" href="#"><i class="bi bi-heart"> Mis gustas</i></a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
+                                <i class="bi bi-person"></i>
+                                <span sec:authentication="name">Usuario</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li sec:authorize="isAnonymous()">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalitoLog">Login</a>
+                                </li>
+                                <li sec:authorize="isAnonymous()">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalitoReg">Registrate</a>
+                                </li>
+                                <li sec:authorize="isAuthenticated()">
+                                    <a class="dropdown-item" th:href="@{/Miperfil}">Mi perfil</a>
+                                </li>
+                                <li sec:authorize="hasRole('ADMIN')">
+                                    <a class="dropdown-item" th:href="@{/RegistroUsuario}">Registro de usuarios</a>
+                                </li>
+                                <li sec:authorize="isAuthenticated()">
+                                    <a class="dropdown-item" th:href="@{/logout}">Cerrar sesión</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+
+
+                    <!-- modal iniciar sesion -->
+                    <div class="modal fade" id="modalitoLog" tabindex="-1" aria-labelledby="modalitoLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    <div class="container py-3">
+                                        <div class="card text-white rounded-3 text-black"
+                                             style="background-color: #ffb74d;">
+                                            <div class="row g-0">
+                                                <div class="col-lg-6">
+                                                    <div class="card-body p-md-4 mx-md-3">
+                                                        <div class="text-center">
+                                                            <img th:src="@{/imagenes/logo/L_cuadrado.png}" style="width: 185px;"
+                                                                 alt="logo">
+                                                        </div>
+
+                                                        <form id="loginform" th:action="@{/login}" method="post">
+                                                            <p class="text-center">Logeate para continuar</p>
+
+                                                            <div class="form-outline mb-3">
+                                                                <input type="text" placeholder="Username" class="form-control" id="loginUsername" name="username" required>
+                                                            </div>
+
+                                                            <div class="form-outline mb-3">
+                                                                <input type="password" placeholder="Contraseña" class="form-control" id="loginPassword" name="password" required>
+                                                            </div>
+
+                                                            <div class="d-flex flex-column align-items-center pt-1 mb-4 pb-1">
+                                                                <button class="btn btn-block text-white fa-lg gradient-custom-2 mb-2 w-100 login-btn" type="submit">
+                                                                    Log in
+                                                                </button>
+                                                            </div>
+
+                                                            <div class="alert alert-danger mt-3" th:if="${param.error}" th:text="'Usuario o contraseña incorrectos.'"></div>
+                                                        </form>
+
+
+
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6 d-none d-lg-flex align-items-center gradient-custom-2">
+                                                    <div class="text-white px-3 py-4 p-md-3 mx-md-3">
+                                                        <h4 class="mb-3">Nos alegra verte nuevamente</h4>
+                                                        <p class="small mb-0">Explora todos los libros y publica tus obras,
+                                                            que la
+                                                            comunidad conozca de tu pasión por este arte y sigue a tus
+                                                            escritores
+                                                            favoritos.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- modal registro -->
+                    <div class="modal fade" id="modalitoReg" tabindex="-1" aria-labelledby="modalitoLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    <div class="container py-3">
+                                        <div class="card text-white rounded-3 text-black" style="background-color: #86bcb7;">
+                                            <div class="row g-0">
+                                                <div class="col-lg-6 d-none d-lg-flex align-items-center gradient-custom-2">
+                                                    <div class="text-white px-3 py-4 p-md-5 mx-md-4">
+                                                        <img src="" alt="">
+                                                        <h4 class="mb-4">Libitina Virtual Books</h4>
+                                                        <p class="small mb-0">El lugar donde tus ideas cobran vida...</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <div class="card-body p-md-5 mx-md-4">
+                                                        <div class="text-center">
+                                                            <img th:src="@{/imagenes/logo/L_cuadrado.png}" style="width: 185px;" alt="logo">
+                                                        </div>
+
+                                                        <!-- Formulario de Registro en el Modal -->
+                                                        <form th:action="@{/usuarios/guardar}" th:object="${usuario}" method="post" class="needs-validation" novalidate>
+                                                            <p class="text-center h4">Regístrate para continuar</p>
+
+                                                            <div class="form-group mb-3">
+                                                                <label for="correo">Correo electrónico</label>
+                                                                <input type="email" th:field="*{correo}" class="form-control" id="correo" placeholder="Ingrese su correo" required>
+                                                                <div class="invalid-feedback">Por favor, ingrese un correo válido.</div>
+                                                            </div>
+
+                                                            <div class="form-group mb-3">
+                                                                <label for="username">Nombre de usuario</label>
+                                                                <input type="text" th:field="*{username}" class="form-control" id="username" placeholder="Ingrese su nombre de usuario" required>
+                                                                <div class="invalid-feedback">El nombre de usuario debe tener entre 2 y 20 caracteres.</div>
+                                                            </div>
+
+                                                            <div class="form-group mb-3">
+                                                                <label for="contraseña">Contraseña</label>
+                                                                <input type="password" th:field="*{contraseña}" class="form-control" id="contraseña" placeholder="Ingrese su contraseña" required>
+                                                                <div class="invalid-feedback">La contraseña debe tener entre 6 y 20 caracteres.</div>
+                                                            </div>
+
+                                                            <div class="text-center">
+                                                                <button type="submit" class="btn btn-primary w-100">Registrarse</button>
+                                                            </div>
+
+                                                            <div class="text-center mt-3">
+                                                                <p class="mb-0">¿Ya tienes una cuenta? 
+                                                                    <a href="/login" class="text-primary">Inicia sesión aquí</a>
+                                                                </p>
+                                                            </div>
+                                                        </form>
+                                                        <!-- Fin del formulario -->
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </nav>
+        <!-- carrusel -->
+        <div class="container-fluid p-0">
+            <div id="slider-codersfree" class="carousel carousel-dark slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button class="active" data-bs-target="#slider-codersfree" data-bs-slide-to="0"></button>
+                    <button data-bs-target="#slider-codersfree" data-bs-slide-to="1"></button>
+                    <button data-bs-target="#slider-codersfree" data-bs-slide-to="2"></button>
+                </div>
+
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img class="d-block w-100 carrusel-1" th:src="@{/imagenes/index/Carrusel2G.png}" alt="">
+                    </div>
+                    <div class="carousel-item">
+                        <img class="d-block w-100 carrusel-2" th:src="@{/imagenes/index/Carrusel1G.png}" alt="">
+                    </div>
+                    <div class="carousel-item">
+                        <img class="d-block w-100 carrusel-3" th:src="@{/imagenes/index/Carrusel3G.png}" alt="">
+                    </div>
+                </div>
+
+
+                <button class="carousel-control-prev" data-bs-target="#slider-codersfree" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" data-bs-target="#slider-codersfree" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
+        </div>
+        <!-- menu de busqueda -->
+        <div class="container-fluid mb-5 wow fadeIn" data-wow-delay="0.1s"
+             style="padding: 35px; background-color: #ffb74d;">
+            <div class="container">
+                <div class="row g-2">
+                    <div class="col-md-10">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control border-0 py-2" placeholder="Buscar...">
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select border-0 py-2">
+                                    <option selected>Genero</option>
+                                    <option value="1">Fantasia</option>
+                                    <option value="2">Ciencia Ficción</option>
+                                    <option value="3">Misterio</option>
+                                    <option value="4">Suspenso</option>
+                                    <option value="5">Romance</option>
+                                    <option value="6">Terror</option>
+                                    <option value="7">Romance</option>
+                                    <option value="8">Aventura</option>
+                                    <option value="9">Literatura clasica</option>
+                                    <option value="10">Ficción Histórica</option>
+                                    <option value="11">Biografía/Autobiografía</option>
+                                    <option value="12">Juvenil</option>
+                                    <option value="13">Humor</option>
+                                    <option value="14">Educativo</option>
+                                    <option value="15">Distopía</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select border-0 py-2">
+                                    <option selected>Tipo</option>
+                                    <option value="1">Novela</option>
+                                    <option value="2">Cuento</option>
+                                    <option value="3">Poesia</option>
+                                    <option value="4">Ensayo</option>
+                                    <option value="5">Libros universitarios</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn custom-btn border-0 w-100 py-2">Buscar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu de generos -->
+        <div class="container-xxl py-5">
+            <div class="container">
+                <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+                    <h1 class="mb-3">Explora los diferentes Generos</h1>
+                    <p>Disfruta de estos y más generos que tenemos para ti</p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <a class="cat-item d-block text-center rounded p-3"
+                           style="background-color: #e4d8ee; text-decoration: none;" href="">
+                            <div class="rounded p-4">
+                                <div class="icon mb-3">
+                                    <img class="img-fluid" th:src="@{/imagenes/iconos/romance.png}" style="width: 45px;"
+                                         alt="Icon">
+                                </div>
+                                <h5>Romance</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <a class="cat-item d-block text-center rounded p-3"
+                           style="background-color: #e4d8ee; text-decoration: none;" href="">
+                            <div class="rounded p-4">
+                                <div class="icon mb-3">
+                                    <img class="img-fluid" th:src="@{/imagenes/iconos/terror.png}" style="width: 45px;" alt="Icon">
+                                </div>
+                                <h5>Terror</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <a class="cat-item d-block text-center rounded p-3"
+                           style="background-color: #e4d8ee; text-decoration: none;" href="">
+                            <div class="rounded p-4">
+                                <div class="icon mb-3">
+                                    <img class="img-fluid" th:src="@{/imagenes/iconos/Aventura.png}" style="width: 45px;"
+                                         alt="Icon">
+                                </div>
+                                <h5>Aventura</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <a class="cat-item d-block text-center rounded p-3"
+                           style="background-color: #e4d8ee; text-decoration: none;" href="">
+                            <div class="rounded p-4">
+                                <div class="icon mb-3">
+                                    <img class="img-fluid" th:src="@{/imagenes/iconos/cienciaFiccion.png}" style="width: 45px;"
+                                         alt="Icon">
+                                </div>
+                                <h5>Ciencia Ficción</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <a class="cat-item d-block text-center rounded p-3"
+                           style="background-color: #e4d8ee; text-decoration: none;" href="">
+                            <div class="rounded p-4">
+                                <div class="icon mb-3">
+                                    <img class="img-fluid" thsrc="@{/imagenes/iconos/fantasia.png}" style="width: 45px;"
+                                         alt="Icon">
+                                </div>
+                                <h5>Fantasia</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <a class="cat-item d-block text-center rounded p-3"
+                           style="background-color: #e4d8ee; text-decoration: none;" href="">
+                            <div class="rounded p-4">
+                                <div class="icon mb-3">
+                                    <img class="img-fluid" th:src="@{/imagenes/iconos/humor.png}" style="width: 45px;" alt="Icon">
+                                </div>
+                                <h5>Humor</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <a class="cat-item d-block text-center rounded p-3"
+                           style="background-color: #e4d8ee; text-decoration: none;" href="">
+                            <div class="rounded p-4">
+                                <div class="icon mb-3">
+                                    <img class="img-fluid" th:src="@{imagenes/iconos/educativo.png}" style="width: 45px;"
+                                         alt="Icon">
+                                </div>
+                                <h5>Educativo</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <a class="cat-item d-block text-center rounded p-3"
+                           style="background-color: #e4d8ee; text-decoration: none;" href="">
+                            <div class="rounded p-4">
+                                <div class="icon mb-3">
+                                    <img class="img-fluid" th:src="@{/imagenes/iconos/literaturaclasica.png}" style="width: 45px;"
+                                         alt="Icon">
+                                </div>
+                                <h5>Literatura clasica</h5>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- libros populares -->
+        <div class="container mt-4">
+            <h1 class="text-center">LIBROS RECIENTES</h1>
+            <div class="row justify-content-center" id="book-list">
+                <!-- Iteramos sobre la lista de libros -->
+                <div th:each="libro : ${libros}" class="col-sm-12 col-md-6 col-xl-3">
+                    <div class="book-card">
+                        <div class="d-flex justify-content-center">
+                            <!-- Link al URL del libro -->
+                            <a th:href="@{'/MenuLibro/' + ${libro.ID}}">
+                                <!-- Imagen de la portada -->
+                                <img th:src="@{'/api/portadas/' + ${libro.ID}}" 
+                                     th:alt="${libro.Titulo}" 
+                                     style="max-width: 100%;">
+                            </a>
+                        </div>
+                        <!-- Título del libro -->
+                        <h5 class="card-title text-center mt-3" th:text="${libro.Titulo}">Título del Libro</h5>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <!-- Icono de estrella y calificación -->
+                                    <i class="bi bi-star-fill" style="color: rgb(228, 231, 12);"></i>
+                                    <span>5.0</span>
+                                </div>
+                                <div>
+                                    <!-- Tipo o género del libro -->
+                                    <h6 th:text="${libro.tipo}">Tipo de Libro</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <footer class=" text-white text-center text-lg-start mt-5" style="background-color: #ffb74d; color: #333333;">
+            <div class="container p-4 text-custom">
+                <div class="row">
+                    <!-- Columna 1 -->
+                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                        <h5 class="text-uppercase">Acerca de nosotros</h5>
+                        <p>
+                            Somos una pagina para los amantes de los libros y para los otakus
+                        </p>
+                    </div>
+
+                    <!-- Columna 2 -->
+                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                        <h5 class="text-uppercase">Enlaces útiles</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="index.html" class="text-light">Libros</a></li>
+                            <li><a href="#" class="text-light">Nosotros</a></li>
+                            <li><a href="SubirLibro.html" class="text-light">Sube tu libro</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Columna 3 -->
+                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                        <h5 class="text-uppercase">Contacto</h5>
+                        <ul class="list-unstyled">
+                            <li>
+                                <p class="mb-0">Dirección: Parque de los papus</p>
+                            </li>
+                            <li>
+                                <p class="mb-0">Teléfono: +51 970 667 280</p>
+                            </li>
+                            <li>
+                                <p class="mb-0">Email: LibitinaVirtualBooks@gmail.com</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Columna 4 -->
+                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                        <img src="imagenes/logo/L_cuadradoN.png" alt="" width="120px">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer inferior -->
+            <div class="text-center p-3 bg-dark" style="border-top: 1px solid #333333;">
+                © 2024 Hecho por los utepinos de la UTP:
+                <a class="text-white" href="index.html">Libitina Virtual Books</a>
+            </div>
+        </footer>
+
+
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+        <script src="/js/main.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+            if (window.location.search.includes('error=true')) {
+            var loginModal = new bootstrap.Modal(document.getElementById('modalitoLog'));
+            loginModal.show();
+            }
+            });
+        </script>
+
+        <script>
+            // Activar validaciones personalizadas del navegador
+            (function () {
+            'use strict';
+            var forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+            }, false);
+            });
+            })();</script>
+
+        <script>
+            document.getElementById('registerButton').addEventListener('click', function () {
+
+            let email = document.getElementById('validationCustomEmail').value.trim();
+            let username = document.getElementById('validationCustomUsername').value.trim();
+            let password = document.getElementById('validationCustomPassword').value.trim();
+            if (email === "" || username === "" || password === "") {
+            Swal.fire({
+            title: "Error en el registro",
+                    text: "Por favor, completa todos los campos antes de registrarte.",
+                    icon: "error",
+                    confirmButtonText: "Aceptar"
+            });
+            } else {
+            Swal.fire({
+            title: "¡Registro completado!",
+                    text: "El registro se ha realizado con éxito.",
+                    icon: "success",
+                    confirmButtonText: "Aceptar"
+            });
+            }
+              });
+        </script>
+
+        <script>
+            document.getElementById('loginButton').addEventListener('click', function () {
+
+            let username = document.getElementById('loginUsername').value.trim();
+            let password = document.getElementById('loginPassword').value.trim();
+            if (username === "" || password === "") {
+            Swal.fire({
+            title: "Error en el login",
+                    text: "Por favor, completa ambos campos para continuar.",
+                    icon: "error",
+                    confirmButtonText: "Aceptar"
+            });
+            } else {
+            Swal.fire({
+            title: "¡Login exitoso!",
+                    text: "Has iniciado sesión correctamente.",
+                    icon: "success",
+                    confirmButtonText: "Aceptar"
+            });
+            }
+            });
+        </script>
+
+
+
+        <script>
+            // Inicialización de libros desde el modelo
+            const books = [[${libros}]]; // Thymeleaf pasará los libros al script
+
+            const booksPerPage = 4; // Solo mostrar los 4 últimos libros
+            let currentPage = 1;
+            function displayBooks(page) {
+            const bookList = document.getElementById("book-list");
+            bookList.innerHTML = ""; // Limpiar los libros actuales
+
+            // Determina el índice de inicio y fin para los libros en esta página
+            const startIndex = (page - 1) * booksPerPage;
+            const endIndex = startIndex + booksPerPage;
+            const booksToShow = books.slice(startIndex, endIndex);
+            booksToShow.forEach(book => {
+            bookList.innerHTML += `
+                <div class="col-sm-12 col-md-6 col-xl-3">
+                    <div class="book-card">
+                        <div class="d-flex justify-content-center">
+                            <a th:href="@{'/MenuLibro/' + ${book.ID}}">
+                                <img th:src="@{'/api/portadas/' + ${book.ID}}" alt="${book.Titulo}" style="max-width: 100%;">
+                            </a>
+                        </div>
+                        <h5 class="card-title text-center mt-3" th:text="${book.Titulo}">Título del Libro</h5>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <i class="bi bi-star-fill" style="color: rgb(228, 231, 12);"></i>
+                                    <span>5.0</span> <!-- Aquí podrías agregar el rating si lo tienes -->
+                                </div>
+                                <div>
+                                    <h6 th:text="${book.tipo}">Tipo de Libro</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            });
+            }
+
+            // Inicialización
+            displayBooks(currentPage);
+        </script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+            if (/*[[${showLoginModal}]]*/) {
+            var loginModal = new bootstrap.Modal(document.getElementById('modalitoLogin'));
+            loginModal.show();
+            }
+            });
+        </script>
+
+    </body>
+
+</html>
