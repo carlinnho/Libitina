@@ -66,6 +66,40 @@ public class Controlador {
 
     @Value("${app.upload.dir}")
     private String uploadDir;
+    
+    @GetMapping({"/", "/index"})
+    public String home(Model model) {
+        model.addAttribute("usuario", new Usuario());
+
+        List<RegistroLibro> registros = registroLibroRepository.findTop4ByOrderByFechaDesc();
+
+        List<Libro> libros = new ArrayList<>();
+        for (RegistroLibro registro : registros) {
+            Libro libro = LibroRepository.findById(registro.getIdLibro()).orElse(null);
+            if (libro != null) {
+                libros.add(libro);
+            }
+        }
+        model.addAttribute("libros", libros);
+
+        return "index";
+    }
+
+    @PostMapping("/usuarios/guardar")
+    public String guardarUsuario(@ModelAttribute Usuario usuario, Model model) {
+
+        if (usuarioDao.findByUsername(usuario.getUsername()) != null) {
+            model.addAttribute("error", "El nombre de usuario ya está en uso.");
+            return "registro";
+        }
+
+        RoleEntity userRole = RoleRepository.findByName(ERole.USER).orElseThrow(() -> new IllegalStateException("Rol USER no encontrado en la base de datos."));
+
+        usuario.getRoles().add(userRole);
+        usuarioDao.save(usuario);
+
+        return "redirect:/index";
+    }
 
     @GetMapping("/Libreria")
     public String Libreria(Model model) {
@@ -81,37 +115,54 @@ public class Controlador {
         model.addAttribute("usuario", new Usuario());
         return ("Libreria");
     }
-
-    @GetMapping("/libreria/buscar")
-    public String buscarLibros(@RequestParam("query") String query, Model model) {
-        List<Libro> libros = LibroRepository.findByTituloContainingIgnoreCase(query);
-
-        model.addAttribute("libros", libros);
-
-        List<Tipo> tipos = TiposRepository.findAll();
-        model.addAttribute("tipos", tipos);
-
-        List<Categoria> categorias = categoriaRepository.findAll();
-        model.addAttribute("categorias", categorias);
-
+    
+    @GetMapping("/SubirLibro")
+    public String SubirLibro(Model model) {
+        model.addAttribute("libro", new Libro());
         model.addAttribute("usuario", new Usuario());
-        return "Libreria";
-    }
-
-    @GetMapping("/Libreria/Filtrar")
-    public String LibreriaFiltrada(@RequestParam(required = false) String tipo,
-            @RequestParam(required = false) String[] categoria,
-            Model model) {
-
-        List<Libro> libros = libroDao.findByFilter(tipo, categoria);
-
-        model.addAttribute("libros", libros);
         model.addAttribute("tipos", TiposRepository.findAll());
         model.addAttribute("categorias", categoriaRepository.findAll());
-
-        model.addAttribute("usuario", new Usuario());
-        return "Libreria";
+        return ("SubirLibro");
     }
+    
+    @GetMapping("/VistaDeLibro")
+    public String VistaDeLibro(@RequestParam("id") int id, Model model) {
+        Optional<Libro> optionalLibro = LibroRepository.findById(id);
+
+        if (optionalLibro.isEmpty()) {
+            return "redirect:/Libreria";
+        }
+
+        Libro libro = optionalLibro.get();
+        Usuario usuario = libro.getUsuario();
+
+        model.addAttribute("libro", libro);
+        model.addAttribute("usuario", usuario);
+        return "VistaDeLibro";
+    }
+
+    @GetMapping("/nosotros")
+    public String nosotros(Model model) {
+        model.addAttribute("usuario", new Usuario());
+        return ("nosotros");
+    }
+    
+    @PostMapping("/login")
+    public String login(@RequestParam("username") String username, @RequestParam("password") String password, Model model, HttpSession session) {
+        Usuario usuario = usuarioDao.findByUsernameAndPassword(username, password);
+        if (usuario != null) {
+            session.setAttribute("usuarioLogeado", usuario);
+            return "redirect:/index";
+        } else {
+            model.addAttribute("loginError", "Username o contraseña incorrectos.");
+            model.addAttribute("showLoginModal", true);
+            return "index";
+        }
+    }
+    
+    
+    
+    //SHHHHH no mostrar por ahora, sube sube sube
 
     @GetMapping("/api/portadas/{id}")
     public ResponseEntity<byte[]> obtenerPortada(@PathVariable int id) {
@@ -146,14 +197,7 @@ public class Controlador {
         return "Miperfil";
     }
 
-    @GetMapping("/SubirLibro")
-    public String SubirLibro(Model model) {
-        model.addAttribute("libro", new Libro());
-        model.addAttribute("usuario", new Usuario());
-        model.addAttribute("tipos", TiposRepository.findAll());
-        model.addAttribute("categorias", categoriaRepository.findAll());
-        return ("SubirLibro");
-    }
+    
 
     @PostMapping("/libros/guardar")
     public String guardarLibro(
@@ -198,27 +242,7 @@ public class Controlador {
         }
     }
 
-    @GetMapping("/VistaDeLibro")
-    public String VistaDeLibro(@RequestParam("id") int id, Model model) {
-        Optional<Libro> optionalLibro = LibroRepository.findById(id);
-
-        if (optionalLibro.isEmpty()) {
-            return "redirect:/Libreria";
-        }
-
-        Libro libro = optionalLibro.get();
-        Usuario usuario = libro.getUsuario();
-
-        model.addAttribute("libro", libro);
-        model.addAttribute("usuario", usuario);
-        return "VistaDeLibro";
-    }
-
-    @GetMapping("/nosotros")
-    public String nosotros(Model model) {
-        model.addAttribute("usuario", new Usuario());
-        return ("nosotros");
-    }
+    
 
     @GetMapping("/MenuLibro/{id}")
     public String menuLibro(@PathVariable("id") int idLibro, Model model) {
@@ -235,39 +259,7 @@ public class Controlador {
         return "MenuLibro";
     }
 
-    @GetMapping({"/", "/index"})
-    public String home(Model model) {
-        model.addAttribute("usuario", new Usuario());
-
-        List<RegistroLibro> registros = registroLibroRepository.findTop4ByOrderByFechaDesc();
-
-        List<Libro> libros = new ArrayList<>();
-        for (RegistroLibro registro : registros) {
-            Libro libro = LibroRepository.findById(registro.getIdLibro()).orElse(null);
-            if (libro != null) {
-                libros.add(libro);
-            }
-        }
-        model.addAttribute("libros", libros);
-
-        return "index";
-    }
-
-    @PostMapping("/usuarios/guardar")
-    public String guardarUsuario(@ModelAttribute Usuario usuario, Model model) {
-
-        if (usuarioDao.findByUsername(usuario.getUsername()) != null) {
-            model.addAttribute("error", "El nombre de usuario ya está en uso.");
-            return "registro";
-        }
-
-        RoleEntity userRole = RoleRepository.findByName(ERole.USER).orElseThrow(() -> new IllegalStateException("Rol USER no encontrado en la base de datos."));
-
-        usuario.getRoles().add(userRole);
-        usuarioDao.save(usuario);
-
-        return "redirect:/index";
-    }
+    
 
     @GetMapping("/RegistroUsuario")
     public String listarUsuariosYLibros(Model model) {
@@ -290,18 +282,7 @@ public class Controlador {
         return "redirect:/RegistroUsuario";
     }
 
-    @PostMapping("/login")
-    public String login(@RequestParam("username") String username, @RequestParam("password") String password, Model model, HttpSession session) {
-        Usuario usuario = usuarioDao.findByUsernameAndPassword(username, password);
-        if (usuario != null) {
-            session.setAttribute("usuarioLogeado", usuario);
-            return "redirect:/index";
-        } else {
-            model.addAttribute("loginError", "Username o contraseña incorrectos.");
-            model.addAttribute("showLoginModal", true);
-            return "index";
-        }
-    }
+    
 
     @GetMapping("/logout")
     public String logout(HttpSession session) {
@@ -321,6 +302,37 @@ public class Controlador {
         LibroRepository.deleteById(id);
 
         return "redirect:/RegistroUsuario";
+    }
+    
+        @GetMapping("/libreria/buscar")
+    public String buscarLibros(@RequestParam("query") String query, Model model) {
+        List<Libro> libros = LibroRepository.findByTituloContainingIgnoreCase(query);
+
+        model.addAttribute("libros", libros);
+
+        List<Tipo> tipos = TiposRepository.findAll();
+        model.addAttribute("tipos", tipos);
+
+        List<Categoria> categorias = categoriaRepository.findAll();
+        model.addAttribute("categorias", categorias);
+
+        model.addAttribute("usuario", new Usuario());
+        return "Libreria";
+    }
+
+    @GetMapping("/Libreria/Filtrar")
+    public String LibreriaFiltrada(@RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String[] categoria,
+            Model model) {
+
+        List<Libro> libros = libroDao.findByFilter(tipo, categoria);
+
+        model.addAttribute("libros", libros);
+        model.addAttribute("tipos", TiposRepository.findAll());
+        model.addAttribute("categorias", categoriaRepository.findAll());
+
+        model.addAttribute("usuario", new Usuario());
+        return "Libreria";
     }
 
 }
