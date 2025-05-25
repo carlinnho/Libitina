@@ -21,14 +21,14 @@ public class DataLoader {
             if (roleRepository.findByName(ERole.ADMIN).isEmpty()) {
                 roleRepository.save(new RoleEntity(null, ERole.ADMIN));
                 roleRepository.save(new RoleEntity(null, ERole.USER));
-                roleRepository.save(new RoleEntity(null, ERole.INVITED)); // Crear el nuevo rol
+                roleRepository.save(new RoleEntity(null, ERole.INVITED));
             }
 
             if (usuarioRepository.findByUsername("admin").isEmpty()) {
                 Usuario admin = new Usuario();
                 admin.setUsername("admin");
                 admin.setCorreo("admin@example.com");
-                admin.setContraseña("admin123"); // Contraseña sin encriptar
+                admin.setContraseña("admin123"); 
                 admin.setRoles(Set.of(roleRepository.findByName(ERole.ADMIN).get()));
 
                 usuarioRepository.save(admin);
