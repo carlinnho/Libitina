@@ -1,11 +1,9 @@
 package com.mdw.web;
 
-import com.mdw.dominio.Categoria;
 import com.mdw.dominio.ERole;
 import com.mdw.dominio.Libro;
 import com.mdw.dominio.RegistroLibro;
 import com.mdw.dominio.RoleEntity;
-import com.mdw.dominio.Tipo;
 import com.mdw.dominio.Usuario;
 import dao.LibroDao;
 import dao.UsuarioDao;
@@ -19,7 +17,6 @@ import jakarta.servlet.http.HttpSession;
 import java.security.Principal;
 import org.springframework.http.HttpHeaders;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +24,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,24 +63,7 @@ public class Controlador {
 
     @Value("${app.upload.dir}")
     private String uploadDir;
-    
-    @GetMapping({"/", "/index"})
-    public String home(Model model) {
-        model.addAttribute("usuario", new Usuario());
 
-        List<RegistroLibro> registros = registroLibroRepository.findTop4ByOrderByFechaDesc();
-
-        List<Libro> libros = new ArrayList<>();
-        for (RegistroLibro registro : registros) {
-            Libro libro = LibroRepository.findById(registro.getIdLibro()).orElse(null);
-            if (libro != null) {
-                libros.add(libro);
-            }
-        }
-        model.addAttribute("libros", libros);
-
-        return "index";
-    }
 
     @PostMapping("/usuarios/guardar")
     public String guardarUsuario(@ModelAttribute Usuario usuario, Model model) {
@@ -101,52 +81,9 @@ public class Controlador {
         return "redirect:/index";
     }
 
-    @GetMapping("/Libreria")
-    public String Libreria(Model model) {
-        List<Libro> libros = LibroRepository.findAll();
-        model.addAttribute("libros", libros);
 
-        List<Tipo> tipos = TiposRepository.findAll();
-        model.addAttribute("tipos", tipos);
 
-        List<Categoria> categorias = categoriaRepository.findAll();
-        model.addAttribute("categorias", categorias);
 
-        model.addAttribute("usuario", new Usuario());
-        return ("Libreria");
-    }
-    
-    @GetMapping("/SubirLibro")
-    public String SubirLibro(Model model) {
-        model.addAttribute("libro", new Libro());
-        model.addAttribute("usuario", new Usuario());
-        model.addAttribute("tipos", TiposRepository.findAll());
-        model.addAttribute("categorias", categoriaRepository.findAll());
-        return ("SubirLibro");
-    }
-    
-    @GetMapping("/VistaDeLibro")
-    public String VistaDeLibro(@RequestParam("id") int id, Model model) {
-        Optional<Libro> optionalLibro = LibroRepository.findById(id);
-
-        if (optionalLibro.isEmpty()) {
-            return "redirect:/Libreria";
-        }
-
-        Libro libro = optionalLibro.get();
-        Usuario usuario = libro.getUsuario();
-
-        model.addAttribute("libro", libro);
-        model.addAttribute("usuario", usuario);
-        return "VistaDeLibro";
-    }
-
-    @GetMapping("/nosotros")
-    public String nosotros(Model model) {
-        model.addAttribute("usuario", new Usuario());
-        return ("nosotros");
-    }
-    
     @PostMapping("/login")
     public String login(@RequestParam("username") String username, @RequestParam("password") String password, Model model, HttpSession session) {
         Usuario usuario = usuarioDao.findByUsernameAndPassword(username, password);
@@ -159,45 +96,28 @@ public class Controlador {
             return "index";
         }
     }
-    
-    
-    
-    //SHHHHH no mostrar por ahora, sube sube sube
 
+    //SHHHHH no mostrar por ahora, sube sube sube
+    @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping("/api/portadas/{id}")
     public ResponseEntity<byte[]> obtenerPortada(@PathVariable int id) {
         Libro libro = libroDao.findById(id);
-        if (libro == null) {
+        if (libro == null || libro.getPortada() == null) {
             return ResponseEntity.notFound().build();
         }
+
         byte[] portada = libro.getPortada();
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_JPEG);
-        return new ResponseEntity<>(portada, headers, HttpStatus.OK);
-    }
 
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping("/Miperfil")
-    public String Miperfil(Model model, Principal principal) {
-        String username = principal.getName();
-        Usuario usuarioLogeado = usuarioDao.findByUsername(username);
-
-        if (usuarioLogeado == null) {
-            return "redirect:/login";
+        // Detectar si es PNG o JPEG
+        if (portada.length > 3 && portada[0] == (byte) 0x89 && portada[1] == 0x50 && portada[2] == 0x4E && portada[3] == 0x47) {
+            headers.setContentType(MediaType.IMAGE_PNG);
+        } else {
+            headers.setContentType(MediaType.IMAGE_JPEG); // por defecto
         }
 
-        int idUsuario = usuarioLogeado.getId();
-        long cantidadLibros = LibroRepository.countByIdUsuario(idUsuario);
-        List<Libro> librosDelUsuario = LibroRepository.findByIdUsuario(idUsuario);
-
-        model.addAttribute("usuario", usuarioLogeado);
-        model.addAttribute("cantidadLibros", cantidadLibros);
-        model.addAttribute("librosDelUsuario", librosDelUsuario);
-
-        return "Miperfil";
+        return new ResponseEntity<>(portada, headers, HttpStatus.OK);
     }
-
-    
 
     @PostMapping("/libros/guardar")
     public String guardarLibro(
@@ -242,24 +162,6 @@ public class Controlador {
         }
     }
 
-    
-
-    @GetMapping("/MenuLibro/{id}")
-    public String menuLibro(@PathVariable("id") int idLibro, Model model) {
-        Libro libro = libroDao.findById(idLibro);
-
-        if (libro != null) {
-            model.addAttribute("libro", libro);
-        } else {
-            model.addAttribute("error", "Libro no encontrado");
-            return "error";
-        }
-
-        model.addAttribute("usuario", new Usuario());
-        return "MenuLibro";
-    }
-
-    
 
     @GetMapping("/RegistroUsuario")
     public String listarUsuariosYLibros(Model model) {
@@ -282,8 +184,6 @@ public class Controlador {
         return "redirect:/RegistroUsuario";
     }
 
-    
-
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
@@ -303,36 +203,6 @@ public class Controlador {
 
         return "redirect:/RegistroUsuario";
     }
-    
-        @GetMapping("/libreria/buscar")
-    public String buscarLibros(@RequestParam("query") String query, Model model) {
-        List<Libro> libros = LibroRepository.findByTituloContainingIgnoreCase(query);
 
-        model.addAttribute("libros", libros);
-
-        List<Tipo> tipos = TiposRepository.findAll();
-        model.addAttribute("tipos", tipos);
-
-        List<Categoria> categorias = categoriaRepository.findAll();
-        model.addAttribute("categorias", categorias);
-
-        model.addAttribute("usuario", new Usuario());
-        return "Libreria";
-    }
-
-    @GetMapping("/Libreria/Filtrar")
-    public String LibreriaFiltrada(@RequestParam(required = false) String tipo,
-            @RequestParam(required = false) String[] categoria,
-            Model model) {
-
-        List<Libro> libros = libroDao.findByFilter(tipo, categoria);
-
-        model.addAttribute("libros", libros);
-        model.addAttribute("tipos", TiposRepository.findAll());
-        model.addAttribute("categorias", categoriaRepository.findAll());
-
-        model.addAttribute("usuario", new Usuario());
-        return "Libreria";
-    }
 
 }

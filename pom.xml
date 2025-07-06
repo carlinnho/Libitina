@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.mdw</groupId>
-    <artifactId>proyMDW3Carlinnho</artifactId>
+    <artifactId>libitina_backendMaster</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>proyMDW3Carlinnho</name>
+    <name>libitina_backendMaster</name>
     <description>Demo de Spring Data</description>
     <url/>
     <licenses>
@@ -65,11 +65,6 @@
             <version>3.1.0</version>
         </dependency>
         
-        <dependency>
-            <groupId>org.thymeleaf.extras</groupId>
-            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
-        </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -88,10 +83,6 @@
             <version>8.0.33</version>
         </dependency>
         
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
         
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

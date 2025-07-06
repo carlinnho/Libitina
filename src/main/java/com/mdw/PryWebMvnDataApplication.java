@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"dao", "interfaces"})
-@ComponentScan(basePackages = {"com.mdw", "dao", "Servicio", "interfaces", "Security"})
+@ComponentScan(basePackages = {"com.mdw","com.mdw.web","dao", "Servicio", "interfaces", "Security"})
 
 public class PryWebMvnDataApplication {
 

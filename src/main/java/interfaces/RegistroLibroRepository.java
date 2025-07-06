@@ -11,10 +11,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RegistroLibroRepository extends JpaRepository<RegistroLibro, Integer> {
-    List<RegistroLibro> findTop4ByOrderByFechaDesc();
+    List<RegistroLibro> findTop8ByOrderByFechaDesc();
     
     @Transactional
     @Modifying
     @Query("DELETE FROM RegistroLibro r WHERE r.idLibro = :idLibro")
     void deleteAllByIdLibro(@Param("idLibro") int idLibro);
 }
+
